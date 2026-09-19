@@ -3,7 +3,7 @@ package application
 import (
 	"context"
 
-	"viewgo/internal/modules/currency/domain"
+	"github.com/Jhonatan-Code-dev/viewgo/internal/modules/currency/domain"
 )
 
 type CurrencyUseCase struct {

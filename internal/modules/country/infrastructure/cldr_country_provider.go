@@ -9,7 +9,7 @@ import (
 	"golang.org/x/text/language"
 	"golang.org/x/text/language/display"
 
-	"viewgo/internal/modules/country/domain"
+	"github.com/Jhonatan-Code-dev/viewgo/internal/modules/country/domain"
 )
 
 // CLDRCountryProvider dynamically extracts ISO 3166-1 country data using official Go unicode text tools.

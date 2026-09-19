@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"viewgo/internal/modules/timezone/domain"
+	"github.com/Jhonatan-Code-dev/viewgo/internal/modules/timezone/domain"
 )
 
 type TimezoneUseCase struct {

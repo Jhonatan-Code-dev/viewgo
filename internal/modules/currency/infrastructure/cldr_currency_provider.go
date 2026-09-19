@@ -8,7 +8,7 @@ import (
 
 	"golang.org/x/text/currency"
 
-	"viewgo/internal/modules/currency/domain"
+	"github.com/Jhonatan-Code-dev/viewgo/internal/modules/currency/domain"
 )
 
 // CLDRCurrencyProvider dynamically retrieves ISO 4217 currencies and symbols from official Go text CLDR registries.

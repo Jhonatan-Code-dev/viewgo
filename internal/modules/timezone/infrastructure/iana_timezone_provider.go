@@ -8,7 +8,7 @@ import (
 	"time"
 	_ "time/tzdata" // Embedded official IANA time zone database from Go standard runtime
 
-	"viewgo/internal/modules/timezone/domain"
+	"github.com/Jhonatan-Code-dev/viewgo/internal/modules/timezone/domain"
 )
 
 // Standard list of official IANA canonical continent/ocean prefixes according to the IANA TZ database.

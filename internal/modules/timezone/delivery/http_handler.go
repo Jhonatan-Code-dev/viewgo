@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strings"
 
-	"viewgo/internal/modules/timezone/application"
+	"github.com/Jhonatan-Code-dev/viewgo/internal/modules/timezone/application"
 )
 
 type TimezoneHTTPHandler struct {

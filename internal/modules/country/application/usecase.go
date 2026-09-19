@@ -3,7 +3,7 @@ package application
 import (
 	"context"
 
-	"viewgo/internal/modules/country/domain"
+	"github.com/Jhonatan-Code-dev/viewgo/internal/modules/country/domain"
 )
 
 type CountryUseCase struct {

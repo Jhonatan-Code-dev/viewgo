@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strings"
 
-	"viewgo/internal/modules/country/application"
+	"github.com/Jhonatan-Code-dev/viewgo/internal/modules/country/application"
 )
 
 type CountryHTTPHandler struct {

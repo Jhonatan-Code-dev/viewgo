@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"viewgo/internal/modules/currency/application"
+	"github.com/Jhonatan-Code-dev/viewgo/internal/modules/currency/application"
 )
 
 type CurrencyHTTPHandler struct {
