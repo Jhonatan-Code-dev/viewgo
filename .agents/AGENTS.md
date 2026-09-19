@@ -12,13 +12,17 @@ This project adheres strictly to **Clean Architecture** principles embedded with
    - When asked to review or audit the project ("revisa"), you MUST recursively scan every directory, subdirectory, and file in the workspace.
    - Do not skip any folder, package, or file. Inspect all source files line by line for absolute truth, zero static fallback data, zero hardcoded values, zero emojis, and zero unhandled errors.
 
-3. **Zero Inventions or Hallucinations ("No Invente")**:
+3. **Extreme Performance & Sub-Microsecond Speed**:
+   - Pre-allocate slice capacity (`make([]T, 0, cap)`), optimize struct memory alignment, and ensure O(1) time complexity on lookup hot paths with minimal heap allocations.
+   - Maintain automated benchmarks (`go test -bench=. -benchmem ./test`) to measure `ns/op`, `B/op`, and `allocs/op`.
+
+4. **Zero Inventions or Hallucinations ("No Invente")**:
    - Never invent or assume file paths, package schemas, or test results. Always verify using file viewing and command execution.
 
-4. **Package Documentation Compliance (staticcheck ST1000)**:
+5. **Package Documentation Compliance (staticcheck ST1000)**:
    - Every Go package MUST have a top-level package comment (`// Package <name> ...`) in at least one source file explaining its purpose.
 
-5. **Core Go Engineering Philosophy**:
+6. **Core Go Engineering Philosophy**:
    - **Clear is better than clever**: Code must be explicit, maintainable, and self-documenting. Avoid unnecessary reflection, magic, or deep inheritance hierarchies.
    - **Accept interfaces, return concrete structs**: Define small consumer-centric interfaces (1-3 methods) and return concrete structs from constructors (`NewProvider()`).
    - **Errors are values**: Treat errors as first-class domain values. Wrap errors using `fmt.Errorf("context: %w", err)` and handle them explicitly.

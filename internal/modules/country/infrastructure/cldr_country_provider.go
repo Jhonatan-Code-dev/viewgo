@@ -14,18 +14,19 @@ import (
 )
 
 // CLDRCountryProvider dynamically extracts ISO 3166-1 country data using official Go unicode text tools.
+// Pointer maps byAlpha2 and byAlpha3 provide sub-microsecond O(1) lookups with 0 heap allocations.
 type CLDRCountryProvider struct {
 	mu        sync.RWMutex
 	countries []domain.Country
-	byAlpha2  map[string]domain.Country
-	byAlpha3  map[string]domain.Country
+	byAlpha2  map[string]*domain.Country
+	byAlpha3  map[string]*domain.Country
 }
 
 // NewCLDRCountryProvider initializes and dynamically loads all official ISO 3166-1 countries from Unicode CLDR.
 func NewCLDRCountryProvider() (*CLDRCountryProvider, error) {
 	provider := &CLDRCountryProvider{
-		byAlpha2: make(map[string]domain.Country),
-		byAlpha3: make(map[string]domain.Country),
+		byAlpha2: make(map[string]*domain.Country, 300),
+		byAlpha3: make(map[string]*domain.Country, 300),
 	}
 	if err := provider.loadOfficialCountries(); err != nil {
 		return nil, err
@@ -39,6 +40,9 @@ func (p *CLDRCountryProvider) loadOfficialCountries() error {
 
 	englishNamer := display.Regions(language.English)
 	selfNamer := display.Self
+
+	// Pre-allocate slice capacity to eliminate dynamic array reallocations
+	p.countries = make([]domain.Country, 0, 300)
 
 	// Iterate through ISO 3166-1 two-letter region codes dynamically
 	for a := 'A'; a <= 'Z'; a++ {
@@ -73,9 +77,10 @@ func (p *CLDRCountryProvider) loadOfficialCountries() error {
 			}
 
 			p.countries = append(p.countries, c)
-			p.byAlpha2[alpha2] = c
+			ptr := &p.countries[len(p.countries)-1]
+			p.byAlpha2[alpha2] = ptr
 			if alpha3 != "" {
-				p.byAlpha3[alpha3] = c
+				p.byAlpha3[alpha3] = ptr
 			}
 		}
 	}
@@ -106,12 +111,12 @@ func (p *CLDRCountryProvider) GetCountryByCode(ctx context.Context, code string)
 
 	cleanCode := strings.ToUpper(strings.TrimSpace(code))
 	if len(cleanCode) == 2 {
-		if c, exists := p.byAlpha2[cleanCode]; exists {
-			return &c, nil
+		if ptr, exists := p.byAlpha2[cleanCode]; exists {
+			return ptr, nil
 		}
 	} else if len(cleanCode) == 3 {
-		if c, exists := p.byAlpha3[cleanCode]; exists {
-			return &c, nil
+		if ptr, exists := p.byAlpha3[cleanCode]; exists {
+			return ptr, nil
 		}
 	}
 
@@ -131,13 +136,14 @@ func (p *CLDRCountryProvider) SearchCountries(ctx context.Context, query string)
 		return p.ListCountries(ctx)
 	}
 
-	var matches []domain.Country
-	for _, c := range p.countries {
+	matches := make([]domain.Country, 0, 10)
+	for i := range p.countries {
+		c := &p.countries[i]
 		if strings.Contains(strings.ToLower(c.Name), q) ||
 			strings.Contains(strings.ToLower(c.NativeName), q) ||
 			strings.ToLower(c.Alpha2) == q ||
 			strings.ToLower(c.Alpha3) == q {
-			matches = append(matches, c)
+			matches = append(matches, *c)
 		}
 	}
 
