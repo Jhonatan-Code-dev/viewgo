@@ -11,12 +11,13 @@ var (
 )
 
 // Country represents a sovereign state or territory officially registered in ISO 3166-1 / Unicode CLDR.
+// Struct alignment optimized: 16-byte strings first, followed by 8-byte int and 1-byte bool.
 type Country struct {
-	Alpha2     string `json:"alpha2"`     // e.g. "ES", "US", "CO", "FR", "JP"
-	Alpha3     string `json:"alpha3"`     // e.g. "ESP", "USA", "COL", "FRA", "JPN"
-	Numeric    int    `json:"numeric"`    // ISO 3166-1 numeric code
-	Name       string `json:"name"`       // Localized English / Standard Display Name
-	NativeName string `json:"native_name"` // Native Language Display Name if available
+	Name       string `json:"name"`        // Official localized display name
+	NativeName string `json:"native_name"` // Native language display name
+	Alpha2     string `json:"alpha2"`      // ISO 3166-1 alpha-2 code (e.g. "ES", "US", "CO")
+	Alpha3     string `json:"alpha3"`      // ISO 3166-1 alpha-3 code (e.g. "ESP", "USA", "COL")
+	Numeric    int    `json:"numeric"`     // ISO 3166-1 numeric M.49 code
 	IsOfficial bool   `json:"is_official"` // ISO official state status
 }
 

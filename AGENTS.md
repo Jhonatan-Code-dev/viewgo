@@ -1,4 +1,4 @@
-# Go Clean Architecture & Modular Monolith Development Guidelines
+# Go Clean Architecture & Modular Monolith Guidelines
 
 This project adheres strictly to **Clean Architecture** principles embedded within a **Modular Monolith** pattern in Go, inspired by the core software engineering philosophy of Go's creators (Rob Pike, Ken Thompson, Robert Griesemer, Russ Cox).
 
