@@ -1,4 +1,4 @@
-# ViewGo 🌍⚡
+# ViewGo
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/Jhonatan-Code-dev/viewgo.svg)](https://pkg.go.dev/github.com/Jhonatan-Code-dev/viewgo)
 [![Go CI Pipeline](https://github.com/Jhonatan-Code-dev/viewgo/actions/workflows/ci.yml/badge.svg)](https://github.com/Jhonatan-Code-dev/viewgo/actions)
@@ -6,21 +6,22 @@
 [![Architecture](https://img.shields.io/badge/Architecture-Clean%20%2B%20Modular%20Monolith-blueviolet)](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**ViewGo** is a production-grade, high-performance Go SDK and microservice published on **[pkg.go.dev](https://pkg.go.dev/github.com/Jhonatan-Code-dev/viewgo)**. 
+ViewGo is an enterprise-grade Go SDK and microservice published on [pkg.go.dev](https://pkg.go.dev/github.com/Jhonatan-Code-dev/viewgo). 
 
-Built with **Clean Architecture** principles inside a **Modular Monolith** pattern, it provides dynamic, official reference data for **Countries**, **IANA Timezones**, and **ISO 4217 Currencies & Symbols** without any hardcoded static datasets.
+Architected with Clean Architecture principles embedded within a Modular Monolith layout, ViewGo provides dynamic, official reference data for Countries, IANA Timezones, and ISO 4217 Currencies & Symbols without relying on hardcoded static datasets.
 
 ---
 
-## 📦 How to Import as a Go Library
+## Installation & Library Usage
 
-Install ViewGo into your Go project:
+Install ViewGo as a Go module:
 
 ```bash
 go get github.com/Jhonatan-Code-dev/viewgo@latest
 ```
 
-### 1. Country Package Example (`pkg/country`)
+### Country Package (`pkg/country`)
+
 ```go
 package main
 
@@ -48,7 +49,8 @@ func main() {
 }
 ```
 
-### 2. Timezone Package Example (`pkg/timezone`)
+### Timezone Package (`pkg/timezone`)
+
 ```go
 package main
 
@@ -76,7 +78,8 @@ func main() {
 }
 ```
 
-### 3. Currency Package Example (`pkg/currency`)
+### Currency Package (`pkg/currency`)
+
 ```go
 package main
 
@@ -106,18 +109,18 @@ func main() {
 
 ---
 
-## 🌟 Key Features
+## Core Capabilities
 
-- ❌ **Zero Static / Hardcoded Data**: All reference datasets are derived at runtime directly from official Go standard runtime packages (`time/tzdata`) and official Unicode CLDR repositories (`golang.org/x/text`).
-- 🏗️ **Clean Architecture & Modular Monolith**: Strictly separated layers (`domain`, `application`, `infrastructure`, `delivery`) encapsulated in isolated modules (`country`, `timezone`, `currency`).
-- 🌎 **ISO 3166-1 Country Registry**: Dynamic resolution of 285+ official countries and territories (Alpha-2, Alpha-3, UN M.49 numeric codes, English & native CLDR localized names).
-- 🕒 **IANA Timezone Registry**: 123+ canonical IANA zones with dynamic UTC offsets, Daylight Saving Time (DST) status, and real-time localized timestamps.
-- 💰 **ISO 4217 Currency & Symbol Engine**: 155+ legal tender currencies with official CLDR currency symbols (`$`, `€`, `¥`, `£`, `R$`, `zł`, `د.إ`), narrow symbols, and decimal precision formatting.
-- 🚀 **Built-in REST API**: Ready-to-use HTTP REST microservice with JSON endpoints.
+- **Zero Static Datasets**: All reference data is dynamically resolved at runtime from standard Go libraries (`time/tzdata`) and official Unicode CLDR registries (`golang.org/x/text`).
+- **Modular Monolith & Clean Architecture**: Domain, Application, Infrastructure, and Delivery layers isolated within independent feature modules (`country`, `timezone`, `currency`).
+- **ISO 3166-1 Country Registry**: Dynamic lookup of 285+ countries and territories including ISO Alpha-2, Alpha-3, UN M.49 numeric codes, English and localized native names.
+- **IANA Timezone Registry**: Resolution of 123+ canonical IANA timezone identifiers with dynamic UTC offset calculation, DST status detection, and real-time localized timestamps.
+- **ISO 4217 Currency Engine**: Resolution of 155+ legal tender currencies with official CLDR symbols, narrow symbols, and decimal precision formatting.
+- **HTTP REST Microservice**: Out-of-the-box REST API controller with structured JSON endpoints.
 
 ---
 
-## 📐 Architecture Diagram
+## Architecture Diagram
 
 ```mermaid
 graph TD
@@ -127,7 +130,7 @@ graph TD
         SDK_R["github.com/Jhonatan-Code-dev/viewgo/pkg/currency"]
     end
 
-    subgraph Delivery Layer HTTP / REST
+    subgraph Delivery Layer HTTP REST
         HTTP_C[Country Handler]
         HTTP_T[Timezone Handler]
         HTTP_R[Currency Handler]
@@ -170,14 +173,15 @@ graph TD
 
 ---
 
-## 📁 Repository Structure (Go Standard Project Layout)
+## Directory Layout
 
 ```text
 viewgo/
 ├── .agents/                          # AGY Workspace Customization & Architecture Rules
 │   ├── AGENTS.md
 │   ├── rules/
-│   │   └── golang-clean-architecture.md
+│   │   ├── golang-clean-architecture.md
+│   │   └── no-emojis-strict-documentation.md
 │   └── skills/
 │       ├── golang-clean-architecture/
 │       └── modular-monolith-go/
@@ -186,7 +190,7 @@ viewgo/
 │       └── ci.yml                    # Automated GitHub Actions & pkg.go.dev Indexing Pipeline
 ├── cmd/
 │   └── viewgo/
-│       └── main.go                   # Main REST Server & Dynamic Statistics Banner Executable
+│       └── main.go                   # Main REST Server & Dynamic Statistics Executable
 ├── pkg/                              # Exported Public Go SDK Packages (pkg.go.dev)
 │   ├── country/                      # Public Country Package (country.NewProvider)
 │   ├── timezone/                     # Public Timezone Package (timezone.NewProvider)
@@ -206,26 +210,94 @@ viewgo/
 
 ---
 
-## 🏷️ Publishing New Versions to pkg.go.dev
+## REST API Specification
 
-To publish a release so it appears immediately on **[pkg.go.dev/github.com/Jhonatan-Code-dev/viewgo](https://pkg.go.dev/github.com/Jhonatan-Code-dev/viewgo)**:
+### 1. Country Endpoints
 
-1. **Tag a semantic version in git**:
+| Method | Path | Description |
+| :--- | :--- | :--- |
+| `GET` | `/api/v1/countries` | List all countries (Supports query parameter `?q=search`) |
+| `GET` | `/api/v1/countries/{code}` | Get country by ISO Alpha-2 (`ES`, `CO`) or Alpha-3 (`COL`, `ESP`) |
+
+#### Example Response (`GET /api/v1/countries/CO`):
+```json
+{
+  "status": "success",
+  "data": {
+    "alpha2": "CO",
+    "alpha3": "COL",
+    "numeric": 170,
+    "name": "Colombia",
+    "native_name": "Colombia",
+    "is_official": true
+  }
+}
+```
+
+---
+
+### 2. Timezone Endpoints
+
+| Method | Path | Description |
+| :--- | :--- | :--- |
+| `GET` | `/api/v1/timezones` | List all canonical IANA timezones (Supports query parameter `?q=search`) |
+| `GET` | `/api/v1/timezones/{ianaName}` | Get timezone details by IANA identifier (`America/Bogota`) |
+
+#### Example Response (`GET /api/v1/timezones/America/Bogota`):
+```json
+{
+  "status": "success",
+  "data": {
+    "iana": "America/Bogota",
+    "abbreviation": "-05",
+    "utc_offset": "-05:00",
+    "raw_offset_seconds": -18000,
+    "is_dst": false,
+    "current_time": "2026-09-19T13:46:59-05:00"
+  }
+}
+```
+
+---
+
+### 3. Currency Endpoints
+
+| Method | Path | Description |
+| :--- | :--- | :--- |
+| `GET` | `/api/v1/currencies` | List all ISO 4217 legal tender currencies and symbols |
+| `GET` | `/api/v1/currencies/{code}` | Get currency by ISO code (`USD`, `EUR`, `JPY`, `COP`) |
+| `GET` | `/api/v1/currencies/format?code=EUR&amount=250.50` | Format monetary amount with official currency symbol |
+
+#### Example Response (`GET /api/v1/currencies/format?code=EUR&amount=250.50`):
+```json
+{
+  "status": "success",
+  "currency": "EUR",
+  "amount": 250.5,
+  "formatted": "€ 250.50"
+}
+```
+
+---
+
+## Release & Versioning Guidelines
+
+To publish a release to `pkg.go.dev`:
+
+1. Tag a semantic version in Git:
    ```bash
    git tag v0.1.0
    git push origin v0.1.0
    ```
 
-2. **Trigger Go Proxy Indexing**:
+2. Trigger Go Proxy Indexing:
    ```bash
    curl https://proxy.golang.org/github.com/Jhonatan-Code-dev/viewgo/@v/v0.1.0.info
    ```
-   Or visit `https://pkg.go.dev/github.com/Jhonatan-Code-dev/viewgo@v0.1.0` in your browser.
 
 ---
 
-## 📄 License
+## License
 
-This project is open-source software licensed under the [MIT License](LICENSE).
-
-Developed with ❤️ by [Jhonatan-Code-dev](https://github.com/Jhonatan-Code-dev).
+This project is licensed under the [MIT License](LICENSE).
+Copyright (c) 2026 Jhonatan-Code-dev.
