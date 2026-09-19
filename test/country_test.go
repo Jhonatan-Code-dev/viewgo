@@ -56,3 +56,44 @@ func TestCountryProvider_ListAndLookup(t *testing.T) {
 		}
 	}
 }
+
+func TestCountryProvider_ValidateAlpha2(t *testing.T) {
+	provider, err := country.NewProvider()
+	if err != nil {
+		t.Fatalf("Failed to initialize Country Provider: %v", err)
+	}
+
+	ctx := context.Background()
+
+	// Test valid 2-letter codes (e.g., PE for Peru, CO for Colombia, ES for Spain, US for United States)
+	validCodes := []string{"PE", "pe", "CO", "co", "ES", "US"}
+	for _, code := range validCodes {
+		c, err := provider.ValidateAlpha2(ctx, code)
+		if err != nil {
+			t.Errorf("Expected valid Alpha-2 code for %s, got error: %v", code, err)
+		} else if c.Alpha2 == "" {
+			t.Errorf("Expected non-empty country struct for %s", code)
+		}
+	}
+
+	// Test Peru specific verification
+	peru, err := provider.ValidateAlpha2(ctx, "PE")
+	if err != nil {
+		t.Fatalf("Failed to validate PE (Peru): %v", err)
+	}
+	if peru.Alpha2 != "PE" {
+		t.Errorf("Expected Alpha2 PE, got %s", peru.Alpha2)
+	}
+
+	// Test invalid code length (3-letter alpha-3 code should be rejected by ValidateAlpha2)
+	_, err = provider.ValidateAlpha2(ctx, "PER")
+	if err == nil {
+		t.Errorf("Expected error for 3-letter code 'PER' in ValidateAlpha2, but got success")
+	}
+
+	// Test invalid 2-letter code
+	_, err = provider.ValidateAlpha2(ctx, "XX")
+	if err == nil {
+		t.Errorf("Expected error for non-existent code 'XX' in ValidateAlpha2, but got success")
+	}
+}

@@ -16,6 +16,7 @@ type Timezone = domain.Timezone
 type Provider interface {
 	ListTimezones(ctx context.Context) ([]Timezone, error)
 	GetTimezoneByName(ctx context.Context, ianaName string) (*Timezone, error)
+	ValidateIANAZone(ctx context.Context, ianaName string) (*Timezone, error)
 	SearchTimezones(ctx context.Context, query string) ([]Timezone, error)
 	GetTime(ctx context.Context, ianaName string) (time.Time, error)
 }

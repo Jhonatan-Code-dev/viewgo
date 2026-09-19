@@ -8,7 +8,8 @@ import (
 )
 
 var (
-	ErrTimezoneNotFound = errors.New("timezone not found in IANA database")
+	ErrTimezoneNotFound    = errors.New("timezone not found in IANA database")
+	ErrInvalidIANATimezone = errors.New("invalid IANA timezone format or name")
 )
 
 // Timezone represents an official IANA time zone (Olson database) with dynamic offset details.
@@ -25,6 +26,7 @@ type Timezone struct {
 type TimezoneProvider interface {
 	ListTimezones(ctx context.Context) ([]Timezone, error)
 	GetTimezoneByName(ctx context.Context, ianaName string) (*Timezone, error)
+	ValidateIANAZone(ctx context.Context, ianaName string) (*Timezone, error)
 	SearchTimezones(ctx context.Context, query string) ([]Timezone, error)
 	GetTime(ctx context.Context, ianaName string) (time.Time, error)
 }

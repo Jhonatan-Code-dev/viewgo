@@ -44,3 +44,44 @@ func TestTimezoneProvider_ListAndLookup(t *testing.T) {
 		}
 	}
 }
+
+func TestTimezoneProvider_ValidateIANAZone(t *testing.T) {
+	provider, err := timezone.NewProvider()
+	if err != nil {
+		t.Fatalf("Failed to initialize Timezone Provider: %v", err)
+	}
+
+	ctx := context.Background()
+
+	// Test valid IANA zones (e.g., America/Lima for Peru, America/Bogota, Europe/London, Asia/Tokyo, UTC)
+	validZones := []string{"America/Lima", "America/Bogota", "Europe/London", "Asia/Tokyo", "UTC", "Etc/UTC"}
+	for _, z := range validZones {
+		tz, err := provider.ValidateIANAZone(ctx, z)
+		if err != nil {
+			t.Errorf("Expected valid IANA zone for %s, got error: %v", z, err)
+		} else if tz.IANA == "" || tz.UTCOffset == "" {
+			t.Errorf("Expected valid Timezone struct details for %s, got %+v", z, tz)
+		}
+	}
+
+	// Test Peru specific IANA timezone (America/Lima)
+	lima, err := provider.ValidateIANAZone(ctx, "America/Lima")
+	if err != nil {
+		t.Fatalf("Failed to validate America/Lima: %v", err)
+	}
+	if lima.IANA != "America/Lima" {
+		t.Errorf("Expected IANA America/Lima, got %s", lima.IANA)
+	}
+
+	// Test invalid / non-canonical zone name
+	_, err = provider.ValidateIANAZone(ctx, "Invalid/City_Name")
+	if err == nil {
+		t.Errorf("Expected error for non-existent IANA zone 'Invalid/City_Name', but got success")
+	}
+
+	// Test invalid prefix
+	_, err = provider.ValidateIANAZone(ctx, "FakePrefix/Bogota")
+	if err == nil {
+		t.Errorf("Expected error for invalid prefix zone 'FakePrefix/Bogota', but got success")
+	}
+}
