@@ -1,7 +1,7 @@
 # ViewGo: Módulo SDK de Alto Rendimiento para Go
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/Jhonatan-Code-dev/viewgo.svg)](https://pkg.go.dev/github.com/Jhonatan-Code-dev/viewgo)
-[![Go CI Pipeline](https://github.com/Jhonatan-Code-dev/viewgo/actions/workflows/ci.yml/badge.svg)](https://github.com/Jhonatan-Code-dev/viewgo/actions)
+[![Go CI Pipeline](https://img.shields.io/github/actions/workflow/status/Jhonatan-Code-dev/viewgo/ci.yml?branch=main&label=Go%20CI%20Pipeline&logo=github)](https://github.com/Jhonatan-Code-dev/viewgo/actions)
 [![Go Version](https://img.shields.io/badge/Go-1.25%2B%20%7C%201.26%2B-00ADD8?style=flat&logo=go)](https://go.dev)
 [![Architecture](https://img.shields.io/badge/Architecture-Clean%20%2B%20Modular%20Monolith-blueviolet)](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
