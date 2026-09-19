@@ -1,3 +1,4 @@
+// Package application provides use cases for querying and orchestrating countries.
 package application
 
 import (

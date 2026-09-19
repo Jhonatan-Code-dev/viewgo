@@ -1,3 +1,4 @@
+// Package infrastructure provides dynamic Unicode CLDR ISO 4217 currency resolution.
 package infrastructure
 
 import (

@@ -1,3 +1,4 @@
+// Package domain provides shared kernel domain primitives and sentinel errors.
 package domain
 
 import "errors"

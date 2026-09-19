@@ -1,3 +1,4 @@
+// Package application provides use cases for querying and formatting currencies.
 package application
 
 import (

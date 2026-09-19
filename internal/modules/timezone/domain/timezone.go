@@ -1,3 +1,4 @@
+// Package domain defines core business entities and provider interfaces for timezones.
 package domain
 
 import (

@@ -15,7 +15,10 @@ This project adheres strictly to **Clean Architecture** principles embedded with
 3. **Zero Inventions or Hallucinations ("No Invente")**:
    - Never invent or assume file paths, package schemas, or test results. Always verify using file viewing and command execution.
 
-4. **Core Go Engineering Philosophy**:
+4. **Package Documentation Compliance (staticcheck ST1000)**:
+   - Every Go package MUST have a top-level package comment (`// Package <name> ...`) in at least one source file explaining its purpose.
+
+5. **Core Go Engineering Philosophy**:
    - **Clear is better than clever**: Code must be explicit, maintainable, and self-documenting. Avoid unnecessary reflection, magic, or deep inheritance hierarchies.
    - **Accept interfaces, return concrete structs**: Define small consumer-centric interfaces (1-3 methods) and return concrete structs from constructors (`NewProvider()`).
    - **Errors are values**: Treat errors as first-class domain values. Wrap errors using `fmt.Errorf("context: %w", err)` and handle them explicitly.

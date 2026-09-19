@@ -1,3 +1,4 @@
+// Package infrastructure provides dynamic IANA timezone resolution from Go tzdata runtime.
 package infrastructure
 
 import (

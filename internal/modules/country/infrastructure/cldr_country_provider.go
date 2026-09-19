@@ -1,3 +1,4 @@
+// Package infrastructure provides dynamic Unicode CLDR ISO 3166-1 country resolution.
 package infrastructure
 
 import (
