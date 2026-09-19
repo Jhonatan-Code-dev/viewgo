@@ -9,6 +9,8 @@ import (
 	"unicode"
 
 	"golang.org/x/text/currency"
+	"golang.org/x/text/language"
+	"golang.org/x/text/message"
 
 	"github.com/Jhonatan-Code-dev/viewgo/internal/modules/currency/domain"
 )
@@ -69,16 +71,14 @@ func (p *CLDRCurrencyProvider) loadOfficialCurrencies() error {
 		}
 		seen[code] = true
 
-		// Dynamically extract official symbol, narrow symbol, and decimal precision from CLDR formatting engine
-		symbol, narrowSymbol, decimals := p.deriveDynamicSymbolAndDecimals(unit, code)
-		name := p.deriveDynamicCurrencyName(code)
+		// Dynamically extract official symbol and decimal precision from CLDR formatting engine
+		symbol, _, decimals := p.deriveDynamicSymbolAndDecimals(unit, code)
+		numCode := deriveNumericCode(code)
 
 		c := domain.Currency{
 			Code:           code,
-			NumericCode:    0,
+			NumericCode:    numCode,
 			Symbol:         symbol,
-			NarrowSymbol:   narrowSymbol,
-			Name:           name,
 			FractionDigits: decimals,
 		}
 
@@ -93,8 +93,24 @@ func (p *CLDRCurrencyProvider) loadOfficialCurrencies() error {
 }
 
 func (p *CLDRCurrencyProvider) deriveDynamicSymbolAndDecimals(unit currency.Unit, code string) (string, string, int) {
-	formatted := fmt.Sprintf("%v", currency.Symbol(unit.Amount(1.0)))
-	narrowFormatted := fmt.Sprintf("%v", currency.NarrowSymbol(unit.Amount(1.0)))
+	tag := language.English
+	if len(code) >= 2 {
+		region := code[:2]
+		if reg, err := language.ParseRegion(region); err == nil && reg.IsCountry() {
+			if t, err := language.Parse(fmt.Sprintf("es-%s", region)); err == nil {
+				tag = t
+			} else if t, err := language.Parse(fmt.Sprintf("en-%s", region)); err == nil {
+				tag = t
+			}
+		}
+	}
+	if code == "EUR" {
+		tag = language.MustParse("es-ES")
+	}
+
+	printer := message.NewPrinter(tag)
+	formatted := printer.Sprintf("%v", currency.Symbol(unit.Amount(1.0)))
+	narrowFormatted := printer.Sprintf("%v", currency.NarrowSymbol(unit.Amount(1.0)))
 
 	symbol := extractSymbolPrefix(formatted, code)
 	narrowSymbol := extractSymbolPrefix(narrowFormatted, code)
@@ -131,8 +147,16 @@ func extractSymbolPrefix(formatted, fallbackCode string) string {
 	return sym
 }
 
-func (p *CLDRCurrencyProvider) deriveDynamicCurrencyName(code string) string {
-	return code
+func deriveNumericCode(code string) int {
+	if code == "EUR" {
+		return 978
+	}
+	if len(code) >= 2 {
+		if reg, err := language.ParseRegion(code[:2]); err == nil && reg.IsCountry() {
+			return reg.M49()
+		}
+	}
+	return 0
 }
 
 func (p *CLDRCurrencyProvider) ListCurrencies(ctx context.Context) ([]domain.Currency, error) {
@@ -165,16 +189,39 @@ func (p *CLDRCurrencyProvider) GetCurrencyByCode(ctx context.Context, code strin
 		return nil, domain.ErrCurrencyNotFound
 	}
 	cleanCode := strings.ToUpper(trimmed)
-	sym, narrowSym, dec := p.deriveDynamicSymbolAndDecimals(unit, cleanCode)
+	sym, _, dec := p.deriveDynamicSymbolAndDecimals(unit, cleanCode)
+	numCode := deriveNumericCode(cleanCode)
 	dynCurrency := domain.Currency{
 		Code:           cleanCode,
-		NumericCode:    0,
+		NumericCode:    numCode,
 		Symbol:         sym,
-		NarrowSymbol:   narrowSym,
-		Name:           cleanCode,
 		FractionDigits: dec,
 	}
 	return &dynCurrency, nil
+}
+
+// ValidateCurrencyCode strictly validates if code is a valid ISO 4217 3-letter currency code (e.g. "PEN", "USD", "EUR").
+// Returns domain.ErrInvalidCurrencyCode if code length is not 3, or domain.ErrCurrencyNotFound if non-existent.
+func (p *CLDRCurrencyProvider) ValidateCurrencyCode(ctx context.Context, code string) (*domain.Currency, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+
+	trimmed := strings.TrimSpace(code)
+	if len(trimmed) != 3 {
+		return nil, domain.ErrInvalidCurrencyCode
+	}
+
+	idx := currencyCodeIndex(trimmed)
+	if idx < 0 {
+		return nil, domain.ErrInvalidCurrencyCode
+	}
+
+	if pos := p.codeTable[idx]; pos > 0 {
+		return &p.currencies[pos-1], nil
+	}
+
+	return p.GetCurrencyByCode(ctx, trimmed)
 }
 
 func (p *CLDRCurrencyProvider) SearchCurrencies(ctx context.Context, query string) ([]domain.Currency, error) {
@@ -194,7 +241,6 @@ func (p *CLDRCurrencyProvider) SearchCurrencies(ctx context.Context, query strin
 	for i := range p.currencies {
 		c := &p.currencies[i]
 		if strings.Contains(strings.ToLower(c.Code), q) ||
-			strings.Contains(strings.ToLower(c.Name), q) ||
 			strings.Contains(strings.ToLower(c.Symbol), q) {
 			matches = append(matches, *c)
 		}

@@ -85,6 +85,21 @@ func BenchmarkCurrencyLookup_Code(b *testing.B) {
 	}
 }
 
+func BenchmarkCurrency_ValidateCode(b *testing.B) {
+	provider, err := currency.NewProvider()
+	if err != nil {
+		b.Fatalf("Failed to initialize Currency Provider: %v", err)
+	}
+
+	ctx := context.Background()
+	b.ResetTimer()
+	b.ReportAllocs()
+
+	for i := 0; i < b.N; i++ {
+		_, _ = provider.ValidateCurrencyCode(ctx, "PEN")
+	}
+}
+
 func BenchmarkCurrencyFormat_Amount(b *testing.B) {
 	provider, err := currency.NewProvider()
 	if err != nil {

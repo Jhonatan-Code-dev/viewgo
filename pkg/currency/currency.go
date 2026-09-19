@@ -15,6 +15,7 @@ type Currency = domain.Currency
 type Provider interface {
 	ListCurrencies(ctx context.Context) ([]Currency, error)
 	GetCurrencyByCode(ctx context.Context, code string) (*Currency, error)
+	ValidateCurrencyCode(ctx context.Context, code string) (*Currency, error)
 	SearchCurrencies(ctx context.Context, query string) ([]Currency, error)
 	FormatAmount(ctx context.Context, code string, amount float64) (string, error)
 }
