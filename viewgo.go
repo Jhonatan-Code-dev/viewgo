@@ -6,6 +6,8 @@
 package viewgo
 
 import (
+	"context"
+
 	countryDom "github.com/Jhonatan-Code-dev/viewgo/internal/modules/country/domain"
 	countryInf "github.com/Jhonatan-Code-dev/viewgo/internal/modules/country/infrastructure"
 
@@ -39,4 +41,48 @@ func NewTimezoneProvider() (TimezoneProvider, error) {
 // NewCurrencyProvider initializes and returns a dynamic ISO 4217 Currency Provider.
 func NewCurrencyProvider() (CurrencyProvider, error) {
 	return currInf.NewCLDRCurrencyProvider()
+}
+
+// TenantConfig represents a validated SaaS tenant regional configuration payload.
+type TenantConfig struct {
+	CountryCode  string    `json:"country_code"`  // ISO 3166-1 Alpha-2 (e.g. "PE", "US", "ES")
+	Timezone     string    `json:"timezone"`      // IANA Zone (e.g. "America/Lima", "America/New_York")
+	CurrencyCode string    `json:"currency_code"` // ISO 4217 Alpha-3 (e.g. "PEN", "USD", "EUR")
+	Country      *Country  `json:"country,omitempty"`
+	TimezoneData *Timezone `json:"timezone_data,omitempty"`
+	Currency     *Currency `json:"currency,omitempty"`
+}
+
+// ValidateTenantConfig validates a complete SaaS tenant registration/onboarding payload in one call.
+// Validates ISO 3166-1 alpha-2 country, IANA timezone, and ISO 4217 currency.
+func ValidateTenantConfig(
+	ctx context.Context,
+	countryP CountryProvider,
+	tzP TimezoneProvider,
+	currP CurrencyProvider,
+	countryAlpha2, ianaZone, currencyAlpha3 string,
+) (*TenantConfig, error) {
+	country, err := countryP.ValidateAlpha2(ctx, countryAlpha2)
+	if err != nil {
+		return nil, err
+	}
+
+	tz, err := tzP.ValidateIANAZone(ctx, ianaZone)
+	if err != nil {
+		return nil, err
+	}
+
+	curr, err := currP.ValidateCurrencyCode(ctx, currencyAlpha3)
+	if err != nil {
+		return nil, err
+	}
+
+	return &TenantConfig{
+		CountryCode:  country.Alpha2,
+		Timezone:     tz.IANA,
+		CurrencyCode: curr.Code,
+		Country:      country,
+		TimezoneData: tz,
+		Currency:     curr,
+	}, nil
 }

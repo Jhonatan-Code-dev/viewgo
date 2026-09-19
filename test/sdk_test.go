@@ -44,3 +44,50 @@ func TestRootSDK_InitializationAndQuery(t *testing.T) {
 		t.Errorf("Root SDK failed currency formatting for EUR: %v", err)
 	}
 }
+
+func TestRootSDK_TenantConfigValidation(t *testing.T) {
+	ctx := context.Background()
+
+	countryProvider, _ := viewgo.NewCountryProvider()
+	tzProvider, _ := viewgo.NewTimezoneProvider()
+	currProvider, _ := viewgo.NewCurrencyProvider()
+
+	// Test valid Peru SaaS Tenant configuration: Country="PE", Timezone="America/Lima", Currency="PEN"
+	tenantCfg, err := viewgo.ValidateTenantConfig(
+		ctx, countryProvider, tzProvider, currProvider,
+		"PE", "America/Lima", "PEN",
+	)
+	if err != nil {
+		t.Fatalf("Failed to validate Peru SaaS Tenant Config: %v", err)
+	}
+
+	if tenantCfg.CountryCode != "PE" || tenantCfg.Timezone != "America/Lima" || tenantCfg.CurrencyCode != "PEN" {
+		t.Errorf("Mismatch in validated TenantConfig codes: %+v", tenantCfg)
+	}
+
+	if tenantCfg.Currency.Symbol != "S/" || tenantCfg.Currency.FractionDigits != 2 {
+		t.Errorf("Mismatch in Peru currency details: %+v", tenantCfg.Currency)
+	}
+
+	t.Logf("Validated SaaS Tenant Config: DB Values: CountryCode=%s, Timezone=%s, CurrencyCode=%s | Render Values: Symbol=%s, Decimals=%d",
+		tenantCfg.CountryCode, tenantCfg.Timezone, tenantCfg.CurrencyCode,
+		tenantCfg.Currency.Symbol, tenantCfg.Currency.FractionDigits)
+
+	// Test invalid country code in payload
+	_, err = viewgo.ValidateTenantConfig(ctx, countryProvider, tzProvider, currProvider, "XX", "America/Lima", "PEN")
+	if err == nil {
+		t.Errorf("Expected error for invalid country code 'XX'")
+	}
+
+	// Test invalid timezone in payload
+	_, err = viewgo.ValidateTenantConfig(ctx, countryProvider, tzProvider, currProvider, "PE", "Invalid/Timezone", "PEN")
+	if err == nil {
+		t.Errorf("Expected error for invalid timezone 'Invalid/Timezone'")
+	}
+
+	// Test invalid currency code in payload
+	_, err = viewgo.ValidateTenantConfig(ctx, countryProvider, tzProvider, currProvider, "PE", "America/Lima", "INVALID")
+	if err == nil {
+		t.Errorf("Expected error for invalid currency code 'INVALID'")
+	}
+}
