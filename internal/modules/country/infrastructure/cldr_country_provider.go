@@ -2,6 +2,7 @@ package infrastructure
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"sync"
 
@@ -35,43 +36,46 @@ func (p *CLDRCountryProvider) loadOfficialCountries() error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	engNamnamer := display.English.Tags()
-	_ = engNamnamer
+	englishNamer := display.Regions(language.English)
+	selfNamer := display.Self
 
-	// Iterate through all supported region tags defined in official Go x/text/language ISO 3166-1 registry
-	for _, reg := range language.SupportedRegions() {
-		if !reg.IsCountry() {
-			continue
-		}
+	// Iterate through ISO 3166-1 two-letter region codes
+	for a := 'A'; a <= 'Z'; a++ {
+		for b := 'A'; b <= 'Z'; b++ {
+			code := fmt.Sprintf("%c%c", a, b)
+			reg, err := language.ParseRegion(code)
+			if err != nil || !reg.IsCountry() {
+				continue
+			}
 
-		alpha2 := strings.ToUpper(reg.String())
-		alpha3 := strings.ToUpper(reg.ISO3())
-		numeric := reg.M49()
+			alpha2 := strings.ToUpper(reg.String())
+			alpha3 := strings.ToUpper(reg.ISO3())
+			numeric := reg.M49()
 
-		// Retrieve official localized display name from Unicode CLDR via Go display package
-		englishName := display.Region(reg).Name(language.English)
-		if englishName == "" {
-			englishName = alpha2
-		}
+			englishName := englishNamer.Name(reg)
+			if englishName == "" {
+				englishName = alpha2
+			}
 
-		nativeName := display.Self.Region(reg)
-		if nativeName == "" {
-			nativeName = englishName
-		}
+			nativeName := selfNamer.Name(reg)
+			if nativeName == "" {
+				nativeName = englishName
+			}
 
-		c := domain.Country{
-			Alpha2:     alpha2,
-			Alpha3:     alpha3,
-			Numeric:    numeric,
-			Name:       englishName,
-			NativeName: nativeName,
-			IsOfficial: true,
-		}
+			c := domain.Country{
+				Alpha2:     alpha2,
+				Alpha3:     alpha3,
+				Numeric:    numeric,
+				Name:       englishName,
+				NativeName: nativeName,
+				IsOfficial: true,
+			}
 
-		p.countries = append(p.countries, c)
-		p.byAlpha2[alpha2] = c
-		if alpha3 != "" {
-			p.byAlpha3[alpha3] = c
+			p.countries = append(p.countries, c)
+			p.byAlpha2[alpha2] = c
+			if alpha3 != "" {
+				p.byAlpha3[alpha3] = c
+			}
 		}
 	}
 

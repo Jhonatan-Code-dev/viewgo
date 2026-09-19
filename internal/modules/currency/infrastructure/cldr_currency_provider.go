@@ -7,8 +7,6 @@ import (
 	"sync"
 
 	"golang.org/x/text/currency"
-	"golang.org/x/text/language"
-	"golang.org/x/text/language/display"
 
 	"viewgo/internal/modules/currency/domain"
 )
@@ -35,34 +33,22 @@ func (p *CLDRCurrencyProvider) loadOfficialCurrencies() error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	// Comprehensive list of standard ISO 4217 currency codes maintained by ISO and Unicode CLDR
-	isoCodes := []string{
-		"USD", "EUR", "JPY", "GBP", "AUD", "CAD", "CHF", "CNY", "HKD", "NZD",
-		"SEK", "KRW", "SGD", "NOK", "MXN", "INR", "RUB", "ZAR", "TRY", "BRL",
-		"TWD", "DKK", "PLN", "THB", "IDR", "HUF", "CZK", "ILS", "CLP", "PHP",
-		"AED", "COP", "SAR", "MYR", "RON", "PEN", "ARARS", "EGP", "VND", "IQD",
-		"DOP", "UAH", "NGN", "ARS", "KES", "QAR", "CRC", "KWD", "OMR", "BHD",
-		"UYU", "PYG", "BOB", "GHS", "JMD", "LKR", "MAD", "PAB", "JOD", "GTQ",
-	}
+	seen := make(map[string]bool)
 
-	disp := display.Currency(language.English)
-
-	for _, code := range isoCodes {
-		unit, err := currency.ParseISO(code)
-		if err != nil {
+	// Dynamically query all official active legal tender currencies from Unicode CLDR via Go text package
+	iter := currency.Query()
+	for iter.Next() {
+		unit := iter.Unit()
+		code := unit.String()
+		if code == "" || code == "XXX" || seen[code] {
 			continue
 		}
+		seen[code] = true
 
-		name := disp.Name(unit)
-		if name == "" {
-			name = code
-		}
-
-		// Retrieve symbol using official Go currency display formatting
-		symbol := p.resolveOfficialSymbol(unit, code)
+		symbol := p.resolveOfficialSymbol(code)
 		narrowSymbol := p.resolveNarrowSymbol(code)
-
 		numCode, decimals := p.resolveNumericAndDecimals(code)
+		name := p.resolveCurrencyName(code)
 
 		c := domain.Currency{
 			Code:           code,
@@ -80,8 +66,42 @@ func (p *CLDRCurrencyProvider) loadOfficialCurrencies() error {
 	return nil
 }
 
-func (p *CLDRCurrencyProvider) resolveOfficialSymbol(unit currency.Unit, code string) string {
-	// Known standard CLDR symbols
+func (p *CLDRCurrencyProvider) resolveCurrencyName(code string) string {
+	names := map[string]string{
+		"USD": "US Dollar",
+		"EUR": "Euro",
+		"JPY": "Japanese Yen",
+		"GBP": "British Pound",
+		"AUD": "Australian Dollar",
+		"CAD": "Canadian Dollar",
+		"CHF": "Swiss Franc",
+		"CNY": "Chinese Yuan",
+		"HKD": "Hong Kong Dollar",
+		"NZD": "New Zealand Dollar",
+		"SEK": "Swedish Krona",
+		"KRW": "South Korean Won",
+		"SGD": "Singapore Dollar",
+		"NOK": "Norwegian Krone",
+		"MXN": "Mexican Peso",
+		"INR": "Indian Rupee",
+		"RUB": "Russian Ruble",
+		"ZAR": "South African Rand",
+		"TRY": "Turkish Lira",
+		"BRL": "Brazilian Real",
+		"COP": "Colombian Peso",
+		"CLP": "Chilean Peso",
+		"PEN": "Peruvian Sol",
+		"ARS": "Argentine Peso",
+		"AED": "United Arab Emirates Dirham",
+		"SAR": "Saudi Riyal",
+	}
+	if name, found := names[code]; found {
+		return name
+	}
+	return code + " Currency"
+}
+
+func (p *CLDRCurrencyProvider) resolveOfficialSymbol(code string) string {
 	switch code {
 	case "USD", "CAD", "AUD", "NZD", "HKD", "SGD", "MXN", "COP", "CLP", "ARS":
 		return "$"
