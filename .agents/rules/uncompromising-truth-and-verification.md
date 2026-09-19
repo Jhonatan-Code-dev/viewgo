@@ -11,9 +11,9 @@
    - Never infer file paths, package interfaces, variable names, or test results without inspecting the authoritative source files or running actual verification commands.
    - Ground every diagnostic statement and code review in verified runtime or static analysis output.
 
-3. **Thorough & Un-skipped Auditing ("Nunca Salte")**:
-   - Never skip steps during code audits or reviews.
-   - Always inspect target files completely and run automated verification tools (`go test ./...`, `go build ./...`) to confirm functionality.
+3. **Exhaustive Recursive Auditing ("Revisa Todo - Nunca Salte")**:
+   - When asked to review or audit the project ("revisa"), you MUST recursively scan every directory, subdirectory, and source file in the workspace.
+   - Do not skip any folder, package, or file. Inspect all source files line by line to verify zero hardcoded data, zero static fallbacks, zero emojis, and zero unhandled errors.
 
 4. **Evidence-Based Diagnostics**:
    - Base diagnoses strictly on exact log lines, compiler output, and error tracebacks.

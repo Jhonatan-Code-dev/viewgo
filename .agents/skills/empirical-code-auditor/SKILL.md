@@ -2,18 +2,19 @@
 name: empirical-code-auditor
 description: >-
   Use this skill when performing an objective, rigorous code audit, review, or pre-flight verification.
-  Enforces 100% honesty, zero assumptions, thorough empirical verification, and zero sycophancy.
+  Enforces 100% honesty, zero assumptions, exhaustive recursive directory scanning, and zero sycophancy.
 ---
 
 # Empirical Code Auditor Skill
 
-This skill provides a procedure for conducting objective, evidence-based code reviews and audits.
+This skill provides an uncompromised procedure for conducting objective, evidence-based code reviews across all workspace directories and subdirectories.
 
-## Audit Workflow
+## Exhaustive Audit Workflow ("Revisa Todo")
 
-### 1. Static Verification & File Inspection
-- Read target source files completely. Never judge code quality based on partial line views.
-- Check package imports, layer separation (Clean Architecture), struct alignment, and error wrapping (`fmt.Errorf("%w", err)`).
+### 1. Recursive Directory & Subdirectory Scanning
+- Traverse every folder in the workspace recursively (`cmd/`, `internal/`, `pkg/`, `.agents/`, root files).
+- Open and inspect every Go source file, Markdown documentation, and configuration file.
+- Verify zero hardcoded static datasets, zero static fallback maps/switches, zero emojis/icons, and proper struct alignment.
 
 ### 2. Empirical Execution Verification
 - Execute compilation:
@@ -28,11 +29,12 @@ This skill provides a procedure for conducting objective, evidence-based code re
 
 ### 3. Truthful Reporting Protocol
 - **State Facts**: Report exact test results, pass/fail counts, and execution times.
-- **Identify Flaws**: Highlight missing unit tests, unhandled errors, memory alignment issues, or architectural violations without sugarcoating.
-- **No Sycophancy**: If a user-proposed change introduces bugs or breaks clean architecture, explicitly report the issue with code line references.
+- **Identify Flaws**: Highlight missing unit tests, unhandled errors, memory alignment issues, or static data fallbacks without sugarcoating.
+- **No Sycophancy**: If code contains defects, report them explicitly with file paths and line numbers.
 
 ## Verification Checklist
-1. Did `go test ./...` exit with code 0?
-2. Did `go build ./...` compile cleanly without warnings?
-3. Are all exported symbols properly documented without emojis?
-4. Are error values properly wrapped and returned?
+1. Were all directories and subdirectories scanned completely?
+2. Did `go test ./...` exit with code 0?
+3. Did `go build ./...` compile cleanly without warnings?
+4. Are all exported symbols properly documented without emojis?
+5. Are error values properly wrapped and returned?

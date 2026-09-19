@@ -39,7 +39,7 @@ func (p *CLDRCountryProvider) loadOfficialCountries() error {
 	englishNamer := display.Regions(language.English)
 	selfNamer := display.Self
 
-	// Iterate through ISO 3166-1 two-letter region codes
+	// Iterate through ISO 3166-1 two-letter region codes dynamically
 	for a := 'A'; a <= 'Z'; a++ {
 		for b := 'A'; b <= 'Z'; b++ {
 			code := fmt.Sprintf("%c%c", a, b)
@@ -63,11 +63,11 @@ func (p *CLDRCountryProvider) loadOfficialCountries() error {
 			}
 
 			c := domain.Country{
+				Name:       englishName,
+				NativeName: nativeName,
 				Alpha2:     alpha2,
 				Alpha3:     alpha3,
 				Numeric:    numeric,
-				Name:       englishName,
-				NativeName: nativeName,
 				IsOfficial: true,
 			}
 
@@ -83,6 +83,10 @@ func (p *CLDRCountryProvider) loadOfficialCountries() error {
 }
 
 func (p *CLDRCountryProvider) ListCountries(ctx context.Context) ([]domain.Country, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 
@@ -92,6 +96,10 @@ func (p *CLDRCountryProvider) ListCountries(ctx context.Context) ([]domain.Count
 }
 
 func (p *CLDRCountryProvider) GetCountryByCode(ctx context.Context, code string) (*domain.Country, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 
@@ -110,6 +118,10 @@ func (p *CLDRCountryProvider) GetCountryByCode(ctx context.Context, code string)
 }
 
 func (p *CLDRCountryProvider) SearchCountries(ctx context.Context, query string) ([]domain.Country, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 

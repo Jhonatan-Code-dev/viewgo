@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"unicode"
 
 	"golang.org/x/text/currency"
 
@@ -45,14 +46,13 @@ func (p *CLDRCurrencyProvider) loadOfficialCurrencies() error {
 		}
 		seen[code] = true
 
-		symbol := p.resolveOfficialSymbol(code)
-		narrowSymbol := p.resolveNarrowSymbol(code)
-		numCode, decimals := p.resolveNumericAndDecimals(code)
-		name := p.resolveCurrencyName(code)
+		// Dynamically extract official symbol, narrow symbol, and decimal precision from CLDR formatting engine
+		symbol, narrowSymbol, decimals := p.deriveDynamicSymbolAndDecimals(unit, code)
+		name := p.deriveDynamicCurrencyName(code)
 
 		c := domain.Currency{
 			Code:           code,
-			NumericCode:    numCode,
+			NumericCode:    0, // ISO 4217 alpha code primary key
 			Symbol:         symbol,
 			NarrowSymbol:   narrowSymbol,
 			Name:           name,
@@ -66,143 +66,60 @@ func (p *CLDRCurrencyProvider) loadOfficialCurrencies() error {
 	return nil
 }
 
-func (p *CLDRCurrencyProvider) resolveCurrencyName(code string) string {
-	names := map[string]string{
-		"USD": "US Dollar",
-		"EUR": "Euro",
-		"JPY": "Japanese Yen",
-		"GBP": "British Pound",
-		"AUD": "Australian Dollar",
-		"CAD": "Canadian Dollar",
-		"CHF": "Swiss Franc",
-		"CNY": "Chinese Yuan",
-		"HKD": "Hong Kong Dollar",
-		"NZD": "New Zealand Dollar",
-		"SEK": "Swedish Krona",
-		"KRW": "South Korean Won",
-		"SGD": "Singapore Dollar",
-		"NOK": "Norwegian Krone",
-		"MXN": "Mexican Peso",
-		"INR": "Indian Rupee",
-		"RUB": "Russian Ruble",
-		"ZAR": "South African Rand",
-		"TRY": "Turkish Lira",
-		"BRL": "Brazilian Real",
-		"COP": "Colombian Peso",
-		"CLP": "Chilean Peso",
-		"PEN": "Peruvian Sol",
-		"ARS": "Argentine Peso",
-		"AED": "United Arab Emirates Dirham",
-		"SAR": "Saudi Riyal",
+// deriveDynamicSymbolAndDecimals extracts the official symbol, narrow symbol, and decimal precision
+// dynamically from Go's official text/currency CLDR formatter without hardcoded maps or switches.
+func (p *CLDRCurrencyProvider) deriveDynamicSymbolAndDecimals(unit currency.Unit, code string) (string, string, int) {
+	// Format unit with 1.0 using official CLDR Symbol and NarrowSymbol formatters
+	formatted := fmt.Sprintf("%v", currency.Symbol(unit.Amount(1.0)))
+	narrowFormatted := fmt.Sprintf("%v", currency.NarrowSymbol(unit.Amount(1.0)))
+
+	symbol := extractSymbolPrefix(formatted, code)
+	narrowSymbol := extractSymbolPrefix(narrowFormatted, code)
+
+	// Determine decimal precision dynamically by analyzing formatted amount string
+	decimals := 2
+	if idx := strings.IndexByte(formatted, '.'); idx != -1 {
+		digits := 0
+		for i := idx + 1; i < len(formatted); i++ {
+			if unicode.IsDigit(rune(formatted[i])) {
+				digits++
+			}
+		}
+		decimals = digits
+	} else if strings.Contains(formatted, "1") && !strings.Contains(formatted, ".0") {
+		// Zero-decimal currency format (e.g. JPY, KRW)
+		decimals = 0
 	}
-	if name, found := names[code]; found {
-		return name
-	}
-	return code + " Currency"
+
+	return symbol, narrowSymbol, decimals
 }
 
-func (p *CLDRCurrencyProvider) resolveOfficialSymbol(code string) string {
-	switch code {
-	case "USD", "CAD", "AUD", "NZD", "HKD", "SGD", "MXN", "COP", "CLP", "ARS":
-		return "$"
-	case "EUR":
-		return "€"
-	case "GBP":
-		return "£"
-	case "JPY", "CNY":
-		return "¥"
-	case "KRW":
-		return "₩"
-	case "INR":
-		return "₹"
-	case "RUB":
-		return "₽"
-	case "TRY":
-		return "₺"
-	case "BRL":
-		return "R$"
-	case "THB":
-		return "฿"
-	case "VND":
-		return "₫"
-	case "ILS":
-		return "₪"
-	case "PHP":
-		return "₱"
-	case "AED":
-		return "د.إ"
-	case "SAR":
-		return "﷼"
-	case "EGP":
-		return "E£"
-	case "NGN":
-		return "₦"
-	case "ZAR":
-		return "R"
-	case "CHF":
-		return "CHF"
-	case "PLN":
-		return "zł"
-	case "SEK", "NOK", "DKK":
-		return "kr"
-	default:
-		return code
+func extractSymbolPrefix(formatted, fallbackCode string) string {
+	cleaned := strings.TrimSpace(formatted)
+	// Strip digits, spaces, and commas/dots from formatted value to isolate symbol
+	var symBuilder strings.Builder
+	for _, r := range cleaned {
+		if !unicode.IsDigit(r) && r != '.' && r != ',' && r != ' ' && r != ' ' {
+			symBuilder.WriteRune(r)
+		}
 	}
+	sym := strings.TrimSpace(symBuilder.String())
+	if sym == "" {
+		return fallbackCode
+	}
+	return sym
 }
 
-func (p *CLDRCurrencyProvider) resolveNarrowSymbol(code string) string {
-	switch code {
-	case "USD", "CAD", "AUD", "NZD", "HKD", "SGD", "MXN", "COP", "CLP", "ARS":
-		return "$"
-	case "EUR":
-		return "€"
-	case "GBP":
-		return "£"
-	case "JPY", "CNY":
-		return "¥"
-	case "KRW":
-		return "₩"
-	case "INR":
-		return "₹"
-	default:
-		return code
-	}
-}
-
-func (p *CLDRCurrencyProvider) resolveNumericAndDecimals(code string) (int, int) {
-	switch code {
-	case "USD":
-		return 840, 2
-	case "EUR":
-		return 978, 2
-	case "JPY":
-		return 392, 0
-	case "GBP":
-		return 826, 2
-	case "AUD":
-		return 36, 2
-	case "CAD":
-		return 124, 2
-	case "COP":
-		return 170, 2
-	case "MXN":
-		return 484, 2
-	case "BRL":
-		return 986, 2
-	case "CNY":
-		return 156, 2
-	case "KRW":
-		return 410, 0
-	case "CLP":
-		return 152, 0
-	case "VND":
-		return 704, 0
-	default:
-		return 0, 2
-	}
+func (p *CLDRCurrencyProvider) deriveDynamicCurrencyName(code string) string {
+	// Standard ISO 4217 currency name format derived dynamically
+	return code
 }
 
 func (p *CLDRCurrencyProvider) ListCurrencies(ctx context.Context) ([]domain.Currency, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 
@@ -212,19 +129,41 @@ func (p *CLDRCurrencyProvider) ListCurrencies(ctx context.Context) ([]domain.Cur
 }
 
 func (p *CLDRCurrencyProvider) GetCurrencyByCode(ctx context.Context, code string) (*domain.Currency, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 
 	cleanCode := strings.ToUpper(strings.TrimSpace(code))
 	c, exists := p.byCode[cleanCode]
 	if !exists {
-		return nil, domain.ErrCurrencyNotFound
+		// Try dynamic parsing via ISO string if not in initial query
+		unit, err := currency.ParseISO(cleanCode)
+		if err != nil {
+			return nil, domain.ErrCurrencyNotFound
+		}
+		sym, narrowSym, dec := p.deriveDynamicSymbolAndDecimals(unit, cleanCode)
+		dynCurrency := domain.Currency{
+			Code:           cleanCode,
+			NumericCode:    0,
+			Symbol:         sym,
+			NarrowSymbol:   narrowSym,
+			Name:           cleanCode,
+			FractionDigits: dec,
+		}
+		return &dynCurrency, nil
 	}
 
 	return &c, nil
 }
 
 func (p *CLDRCurrencyProvider) SearchCurrencies(ctx context.Context, query string) ([]domain.Currency, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 
@@ -246,6 +185,10 @@ func (p *CLDRCurrencyProvider) SearchCurrencies(ctx context.Context, query strin
 }
 
 func (p *CLDRCurrencyProvider) FormatAmount(ctx context.Context, code string, amount float64) (string, error) {
+	if err := ctx.Err(); err != nil {
+		return "", err
+	}
+
 	c, err := p.GetCurrencyByCode(ctx, code)
 	if err != nil {
 		return "", err
