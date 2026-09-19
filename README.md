@@ -124,63 +124,6 @@ func main() {
 
 ---
 
-## Core Capabilities
-
-- **Pure Go Library**: Zero HTTP server overhead. Directly embeds into your Go microservices or monoliths.
-- **Zero Static Datasets**: All reference data is dynamically resolved at runtime from standard Go libraries (`time/tzdata`) and official Unicode CLDR registries (`golang.org/x/text`).
-- **ISO 3166-1 Country Registry**: Dynamic lookup of 285+ countries and territories including ISO Alpha-2, Alpha-3, UN M.49 numeric codes, English and localized native names.
-- **IANA Timezone Registry**: Resolution of 123+ canonical IANA timezone identifiers with dynamic UTC offset calculation, DST status detection, and real-time localized timestamps.
-- **ISO 4217 Currency Engine**: Resolution of 155+ legal tender currencies with official CLDR symbols, narrow symbols, and decimal precision formatting.
-
----
-
-## Architecture Diagram
-
-```mermaid
-graph TD
-    subgraph Go Application / Microservice
-        APP[User Go Application]
-    end
-
-    subgraph ViewGo Public SDK Library Facades
-        ROOT["github.com/Jhonatan-Code-dev/viewgo"]
-        SDK_C["github.com/Jhonatan-Code-dev/viewgo/pkg/country"]
-        SDK_T["github.com/Jhonatan-Code-dev/viewgo/pkg/timezone"]
-        SDK_R["github.com/Jhonatan-Code-dev/viewgo/pkg/currency"]
-    end
-
-    subgraph Internal Domain Layer
-        D_C[Country Domain]
-        D_T[Timezone Domain]
-        D_R[Currency Domain]
-    end
-
-    subgraph Infrastructure Layer Official Providers
-        INF_C[CLDR Country Provider<br/>golang.org/x/text/language]
-        INF_T[IANA Timezone Provider<br/>time/tzdata]
-        INF_R[CLDR Currency Provider<br/>golang.org/x/text/currency]
-    end
-
-    APP --> ROOT
-    APP --> SDK_C
-    APP --> SDK_T
-    APP --> SDK_R
-
-    ROOT --> INF_C
-    ROOT --> INF_T
-    ROOT --> INF_R
-
-    SDK_C --> INF_C
-    SDK_T --> INF_T
-    SDK_R --> INF_R
-
-    INF_C -. Implements .-> D_C
-    INF_T -. Implements .-> D_T
-    INF_R -. Implements .-> D_R
-```
-
----
-
 ## Directory Layout
 
 ```text
@@ -188,10 +131,15 @@ viewgo/
 ├── .agents/                          # AGY Workspace Customization & Architecture Rules
 ├── .github/
 │   └── workflows/
-│       └── ci.yml                    # Automated GitHub Actions & pkg.go.dev Indexing Pipeline
+│       └── ci.yml                    # Automated GitHub Actions Pipeline
 ├── cmd/
 │   └── viewgo/
 │       └── main.go                   # Interactive CLI Demonstration Executable
+├── test/                             # Consolidated Test Suite Package
+│   ├── country_test.go               # Dynamic Country Module Tests
+│   ├── currency_test.go              # Dynamic Currency Module Tests
+│   ├── sdk_test.go                   # Dynamic Root SDK Module Tests
+│   └── timezone_test.go              # Dynamic Timezone Module Tests
 ├── pkg/                              # Exported Public Go Subpackages
 │   ├── country/                      # Public Country Package (country.NewProvider)
 │   ├── timezone/                     # Public Timezone Package (timezone.NewProvider)
@@ -204,7 +152,6 @@ viewgo/
 │       ├── timezone/                 # Timezone Feature Module (Domain & Infrastructure)
 │       └── currency/                 # Currency Feature Module (Domain & Infrastructure)
 ├── doc.go                            # Top-level GoDoc package documentation
-├── example_test.go                   # Runnable GoDoc Examples
 ├── go.mod                            # Go Module definition
 ├── viewgo.go                         # Unified top-level package facade
 ├── LICENSE                           # MIT License
