@@ -9,6 +9,7 @@ import (
 var (
 	ErrCountryNotFound = errors.New("country not found")
 	ErrInvalidISO2Code = errors.New("invalid ISO 3166-1 alpha-2 country code")
+	ErrInvalidISO3Code = errors.New("invalid ISO 3166-1 alpha-3 country code")
 )
 
 // Country represents a sovereign state or territory officially registered in ISO 3166-1 / Unicode CLDR.
@@ -27,5 +28,6 @@ type CountryProvider interface {
 	ListCountries(ctx context.Context) ([]Country, error)
 	GetCountryByCode(ctx context.Context, code string) (*Country, error)
 	ValidateAlpha2(ctx context.Context, code string) (*Country, error)
+	ValidateAlpha3(ctx context.Context, code string) (*Country, error)
 	SearchCountries(ctx context.Context, query string) ([]Country, error)
 }

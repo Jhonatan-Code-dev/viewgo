@@ -41,6 +41,21 @@ func BenchmarkCountry_ValidateAlpha2(b *testing.B) {
 	}
 }
 
+func BenchmarkCountry_ValidateAlpha3(b *testing.B) {
+	provider, err := country.NewProvider()
+	if err != nil {
+		b.Fatalf("Failed to initialize Country Provider: %v", err)
+	}
+
+	ctx := context.Background()
+	b.ResetTimer()
+	b.ReportAllocs()
+
+	for i := 0; i < b.N; i++ {
+		_, _ = provider.ValidateAlpha3(ctx, "PER")
+	}
+}
+
 func BenchmarkTimezoneLookup_IANA(b *testing.B) {
 	provider, err := timezone.NewProvider()
 	if err != nil {

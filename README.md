@@ -82,15 +82,20 @@ func main() {
 
 ---
 
-### 2. Uso de Subpaquetes Individuales (`pkg/country`, `pkg/timezone`, `pkg/currency`)
+### 2. Validación de Métodos por Separado (`pkg/country`, `pkg/timezone`, `pkg/currency`)
 
-#### Países (`pkg/country`)
+Cada módulo cuenta con métodos dedicados para validar entradas de forma independiente:
+
+#### Validación de Países (`pkg/country`)
+Permite validar códigos de país ISO 3166-1 de 2 letras (Alpha-2) o 3 letras (Alpha-3) por separado:
+
 ```go
 package main
 
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"github.com/Jhonatan-Code-dev/viewgo/pkg/country"
 )
@@ -99,21 +104,32 @@ func main() {
 	provider, _ := country.NewProvider()
 	ctx := context.Background()
 
-	// Validar código Alpha-2 (ej. Perú)
-	pe, err := provider.ValidateAlpha2(ctx, "PE")
-	if err == nil {
-		fmt.Printf("País: %s (%s / %s) - M.49: %d\n", pe.Name, pe.Alpha2, pe.Alpha3, pe.Numeric)
+	// 1. Validar por separado código Alpha-2 (2 letras)
+	pe2, err := provider.ValidateAlpha2(ctx, "PE")
+	if err != nil {
+		log.Fatalf("Código Alpha-2 inválido: %v", err)
 	}
+	fmt.Printf("Alpha-2 Válido -> País: %s (%s / %s) - M.49: %d\n", pe2.Name, pe2.Alpha2, pe2.Alpha3, pe2.Numeric)
+
+	// 2. Validar por separado código Alpha-3 (3 letras)
+	pe3, err := provider.ValidateAlpha3(ctx, "PER")
+	if err != nil {
+		log.Fatalf("Código Alpha-3 inválido: %v", err)
+	}
+	fmt.Printf("Alpha-3 Válido -> País: %s (%s / %s)\n", pe3.Name, pe3.Alpha2, pe3.Alpha3)
 }
 ```
 
-#### Zonas Horarias (`pkg/timezone`)
+#### Validación de Zonas Horarias por Separado (`pkg/timezone`)
+Permite validar si una cadena corresponde a un identificador de zona horaria oficial IANA:
+
 ```go
 package main
 
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"github.com/Jhonatan-Code-dev/viewgo/pkg/timezone"
 )
@@ -122,21 +138,26 @@ func main() {
 	provider, _ := timezone.NewProvider()
 	ctx := context.Background()
 
-	// Validar zona IANA oficial
+	// Validar zona IANA oficial (ej. America/Lima o Europe/Madrid)
 	tz, err := provider.ValidateIANAZone(ctx, "America/Lima")
-	if err == nil {
-		fmt.Printf("Zona: %s | Offset UTC: %s\n", tz.IANA, tz.UTCOffset)
+	if err != nil {
+		log.Fatalf("Zona IANA inválida: %v", err)
 	}
+	fmt.Printf("Zona Horaria Válida -> IANA: %s | UTC Offset: %s | Abrev: %s | DST: %t\n",
+		tz.IANA, tz.UTCOffset, tz.Abbreviation, tz.IsDST)
 }
 ```
 
-#### Monedas (`pkg/currency`)
+#### Validación de Monedas por Separado (`pkg/currency`)
+Permite validar divisas ISO 4217 de 3 letras y formatear montos financieros:
+
 ```go
 package main
 
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"github.com/Jhonatan-Code-dev/viewgo/pkg/currency"
 )
@@ -145,14 +166,15 @@ func main() {
 	provider, _ := currency.NewProvider()
 	ctx := context.Background()
 
-	// Consultar divisa ISO 4217 (ej. PEN / Sol Peruano)
+	// Validar divisa ISO 4217 de 3 letras (ej. PEN / Sol Peruano)
 	pen, err := provider.ValidateCurrencyCode(ctx, "PEN")
-	if err == nil {
-		fmt.Printf("Moneda: %s | Símbolo: %s | Código Numérico: %d | Decimales: %d\n",
-			pen.Code, pen.Symbol, pen.NumericCode, pen.FractionDigits)
+	if err != nil {
+		log.Fatalf("Moneda inválida: %v", err)
 	}
+	fmt.Printf("Moneda Válida -> Código: %s | Símbolo: %s | Numérico: %d | Decimales: %d\n",
+		pen.Code, pen.Symbol, pen.NumericCode, pen.FractionDigits)
 
-	// Formatear monto monetario
+	// Formatear monto monetario de acuerdo a la moneda
 	formatted, _ := provider.FormatAmount(ctx, "PEN", 1234.56)
 	fmt.Println(formatted) // S/ 1234.56
 }

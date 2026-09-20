@@ -16,6 +16,7 @@ type Provider interface {
 	ListCountries(ctx context.Context) ([]Country, error)
 	GetCountryByCode(ctx context.Context, code string) (*Country, error)
 	ValidateAlpha2(ctx context.Context, code string) (*Country, error)
+	ValidateAlpha3(ctx context.Context, code string) (*Country, error)
 	SearchCountries(ctx context.Context, query string) ([]Country, error)
 }
 

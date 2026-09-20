@@ -184,6 +184,26 @@ func (p *CLDRCountryProvider) ValidateAlpha2(ctx context.Context, code string) (
 	return nil, domain.ErrCountryNotFound
 }
 
+// ValidateAlpha3 strictly validates if code is an official ISO 3166-1 3-letter country code (e.g. "PER", "USA", "COL").
+// Returns domain.ErrInvalidISO3Code if code length is not 3, or domain.ErrCountryNotFound if non-existent.
+func (p *CLDRCountryProvider) ValidateAlpha3(ctx context.Context, code string) (*domain.Country, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+
+	trimmed := strings.TrimSpace(code)
+	idx := alpha3Index(trimmed)
+	if idx < 0 {
+		return nil, domain.ErrInvalidISO3Code
+	}
+
+	if pos := p.alpha3Table[idx]; pos > 0 {
+		return &p.countries[pos-1], nil
+	}
+
+	return nil, domain.ErrCountryNotFound
+}
+
 func (p *CLDRCountryProvider) SearchCountries(ctx context.Context, query string) ([]domain.Country, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err

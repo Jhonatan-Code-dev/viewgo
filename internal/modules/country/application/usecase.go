@@ -25,6 +25,14 @@ func (uc *CountryUseCase) GetByCode(ctx context.Context, code string) (*domain.C
 	return uc.provider.GetCountryByCode(ctx, code)
 }
 
+func (uc *CountryUseCase) ValidateAlpha2(ctx context.Context, code string) (*domain.Country, error) {
+	return uc.provider.ValidateAlpha2(ctx, code)
+}
+
+func (uc *CountryUseCase) ValidateAlpha3(ctx context.Context, code string) (*domain.Country, error) {
+	return uc.provider.ValidateAlpha3(ctx, code)
+}
+
 func (uc *CountryUseCase) Search(ctx context.Context, query string) ([]domain.Country, error) {
 	return uc.provider.SearchCountries(ctx, query)
 }
