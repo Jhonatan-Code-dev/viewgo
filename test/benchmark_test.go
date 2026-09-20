@@ -1,3 +1,4 @@
+// Package test provides unified, isolated unit and integration tests for ViewGo.
 package test
 
 import (
